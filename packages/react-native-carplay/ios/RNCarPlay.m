@@ -1271,6 +1271,16 @@ RCT_EXPORT_METHOD(updateMapTemplateMapButtons:(NSString*) templateId mapButtons:
         [maneuver setInstructionVariants:[RCTConvert NSStringArray:json[@"instructionVariants"]]];
     }
 
+    if ([json objectForKey:@"dashboardInstructionVariants"]) {
+        if (@available(iOS 14.0, *)) {
+            [maneuver setDashboardInstructionVariants:[RCTConvert NSStringArray:json[@"instructionVariants"]]];
+        }
+    }
+
+    if ([json objectForKey:@"notificationInstructionVariants"]) {
+        [maneuver setNotificationInstructionVariants:[RCTConvert NSStringArray:json[@"instructionVariants"]]];
+    }
+
     if ([json objectForKey:@"attributedInstructionVariants"]) {
         NSArray *attributedInstructionVariants = [RCTConvert NSArray:json[@"attributedInstructionVariants"]];
         NSMutableArray *attributedStrings = [NSMutableArray array];
@@ -1301,6 +1311,74 @@ RCT_EXPORT_METHOD(updateMapTemplateMapButtons:(NSString*) templateId mapButtons:
         }
 
         [maneuver setAttributedInstructionVariants:attributedStrings];
+    }
+
+    if ([json objectForKey:@"dashboardAttributedInstructionVariants"]) {
+        if (@available(iOS 14.0, *)) {
+            NSArray *dashboardAttributedInstructionVariants = [RCTConvert NSArray:json[@"dashboardAttributedInstructionVariants"]];
+            NSMutableArray *attributedStrings = [NSMutableArray array];
+            
+            for (NSDictionary *attributedTextDict in dashboardAttributedInstructionVariants) {
+                NSString *text = [RCTConvert NSString:attributedTextDict[@"text"]];
+                NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:text];
+                
+                if ([attributedTextDict objectForKey:@"attributedImage"]) {
+                    UIImage *image = [RCTConvert UIImage:attributedTextDict[@"attributedImage"]];
+                    
+                    if (image != nil) {
+                        if ([attributedTextDict objectForKey:@"attributedImageSize"]) {
+                            NSDictionary *size = [RCTConvert NSDictionary:attributedTextDict[@"attributedImageSize"]];
+                            double width = [RCTConvert double:size[@"width"]];
+                            double height = [RCTConvert double:size[@"height"]];
+                            image = [self imageWithSize:image convertToSize:CGSizeMake(width, height)];
+                        }
+                        
+                        NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+                        attachment.image = image;
+                        NSAttributedString *imageString = [NSAttributedString attributedStringWithAttachment:attachment];
+                        [attributedString appendAttributedString:imageString];
+                    }
+                    
+                    [attributedStrings addObject:attributedString];
+                }
+            }
+            
+            [maneuver setDashboardAttributedInstructionVariants:attributedStrings];
+        }
+    }
+
+    if ([json objectForKey:@"notificationAttributedInstructionVariants"]) {
+        if (@available(iOS 14.0, *)) {
+            NSArray *notificationAttributedInstructionVariants = [RCTConvert NSArray:json[@"notificationAttributedInstructionVariants"]];
+            NSMutableArray *attributedStrings = [NSMutableArray array];
+            
+            for (NSDictionary *attributedTextDict in notificationAttributedInstructionVariants) {
+                NSString *text = [RCTConvert NSString:attributedTextDict[@"text"]];
+                NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:text];
+                
+                if ([attributedTextDict objectForKey:@"attributedImage"]) {
+                    UIImage *image = [RCTConvert UIImage:attributedTextDict[@"attributedImage"]];
+                    
+                    if (image != nil) {
+                        if ([attributedTextDict objectForKey:@"attributedImageSize"]) {
+                            NSDictionary *size = [RCTConvert NSDictionary:attributedTextDict[@"attributedImageSize"]];
+                            double width = [RCTConvert double:size[@"width"]];
+                            double height = [RCTConvert double:size[@"height"]];
+                            image = [self imageWithSize:image convertToSize:CGSizeMake(width, height)];
+                        }
+                        
+                        NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+                        attachment.image = image;
+                        NSAttributedString *imageString = [NSAttributedString attributedStringWithAttachment:attachment];
+                        [attributedString appendAttributedString:imageString];
+                    }
+                    
+                    [attributedStrings addObject:attributedString];
+                }
+            }
+            
+            [maneuver setNotificationAttributedInstructionVariants:attributedStrings];
+        }
     }
 
     return maneuver;
