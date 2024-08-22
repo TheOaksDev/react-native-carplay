@@ -21,15 +21,31 @@ export class NavigationSession {
           const image = Image.resolveAssetSource(maneuver.symbolImage);
           maneuver.symbolImage = image;
           maneuver.symbolImageSize = maneuver.symbolImageSize ?? { width: 50, height: 50 };
-          const width = Math.floor((maneuver.symbolImageSize.width * windowScale) / image.scale);
-          const height = Math.floor((maneuver.symbolImageSize.height * windowScale) / image.scale);
-          maneuver.symbolImageSize = { width, height };
+          // const width = Math.floor((maneuver.symbolImageSize.width * windowScale) / image.scale);
+          // const height = Math.floor((maneuver.symbolImageSize.height * windowScale) / image.scale);
+          // maneuver.symbolImageSize = { width, height };
         }
         if (maneuver.junctionImage) {
           maneuver.junctionImage = Image.resolveAssetSource(maneuver.junctionImage);
         }
         if (maneuver.tintSymbolImage && typeof maneuver.tintSymbolImage === 'string') {
           maneuver.tintSymbolImage = processColor(maneuver.tintSymbolImage);
+        }
+        if (Array.isArray(maneuver.attributedInstructionVariants)) {
+          if (maneuver.attributedInstructionVariants.length > 0) {
+            maneuver.attributedInstructionVariants = maneuver.attributedInstructionVariants.map(
+              attrInstruction => {
+                if (attrInstruction.attributedImage) {
+                  return {
+                    ...attrInstruction,
+                    attributedImage: Image.resolveAssetSource(attrInstruction.attributedImage),
+                  };
+                }
+
+                return attrInstruction;
+              },
+            );
+          }
         }
         return maneuver;
       }),

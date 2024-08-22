@@ -182,7 +182,7 @@ RCT_EXPORT_MODULE();
     [task resume];
 }
 
-- (void)updateListRowItemImageWithURL:(CPListImageRowItem *)item imgUrl:(NSString *)imgUrlString index:(int)index {    
+- (void)updateListRowItemImageWithURL:(CPListImageRowItem *)item imgUrl:(NSString *)imgUrlString index:(int)index {
     NSURL *imgUrl = [NSURL URLWithString:imgUrlString];
     
     NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithURL:imgUrl completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
@@ -198,9 +198,9 @@ RCT_EXPORT_MODULE();
                 @catch (NSException *exception) {
                     // Best effort updating the array
                     NSLog(@"Failed to update images array of CPListImageRowItem");
-                }                
+                }
                 
-                [item updateImages:newImages];                
+                [item updateImages:newImages];
             });
         } else {
             NSLog(@"Failed to load image for CPListImageRowItem from URL: %@", imgUrl);
@@ -744,7 +744,7 @@ RCT_EXPORT_METHOD(getMaximumListItemImageSize:(NSString *)templateId
             @"width": @(CPListItem.maximumImageSize.width),
             @"height": @(CPListItem.maximumImageSize.height)
         };
-        resolve(sizeDict);        
+        resolve(sizeDict);
     } else {
         NSLog(@"Failed to find template %@", template);
         reject(@"template_not_found", @"Template not found in store", nil);
@@ -790,7 +790,7 @@ RCT_EXPORT_METHOD(getMaximumListImageRowItemImageSize:(NSString *)templateId
             @"width": @(CPListImageRowItem.maximumImageSize.width),
             @"height": @(CPListImageRowItem.maximumImageSize.height)
         };
-        resolve(sizeDict);    
+        resolve(sizeDict);
     } else {
         NSLog(@"Failed to find template %@", template);
         reject(@"template_not_found", @"Template not found in store", nil);
@@ -1269,6 +1269,38 @@ RCT_EXPORT_METHOD(updateMapTemplateMapButtons:(NSString*) templateId mapButtons:
 
     if ([json objectForKey:@"instructionVariants"]) {
         [maneuver setInstructionVariants:[RCTConvert NSStringArray:json[@"instructionVariants"]]];
+    }
+
+    if ([json objectForKey:@"attributedInstructionVariants"]) {
+        NSArray *attributedInstructionVariants = [RCTConvert NSArray:json[@"attributedInstructionVariants"]];
+        NSMutableArray *attributedStrings = [NSMutableArray array];
+
+        for (NSDictionary *attributedTextDict in attributedInstructionVariants) {
+            NSString *text = [RCTConvert NSString:attributedTextDict[@"text"]];
+            NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:text];
+            
+            if ([attributedTextDict objectForKey:@"attributedImage"]) {
+                UIImage *image = [RCTConvert UIImage:attributedTextDict[@"attributedImage"]];
+                
+                if (image != nil) {
+                    if ([attributedTextDict objectForKey:@"attributedImageSize"]) {
+                        NSDictionary *size = [RCTConvert NSDictionary:attributedTextDict[@"attributedImageSize"]];
+                        double width = [RCTConvert double:size[@"width"]];
+                        double height = [RCTConvert double:size[@"height"]];
+                        image = [self imageWithSize:image convertToSize:CGSizeMake(width, height)];
+                    }
+                    
+                    NSTextAttachment *attachment = [[NSTextAttachment alloc] init];
+                    attachment.image = image;
+                    NSAttributedString *imageString = [NSAttributedString attributedStringWithAttachment:attachment];
+                    [attributedString appendAttributedString:imageString];
+                }
+                
+                [attributedStrings addObject:attributedString];
+            }
+        }
+
+        [maneuver setAttributedInstructionVariants:attributedStrings];
     }
 
     return maneuver;

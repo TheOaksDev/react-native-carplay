@@ -1,3 +1,4 @@
+import { AttributedText } from './AttributedText';
 import { TravelEstimates } from './TravelEstimates';
 import { ColorValue, ImageSourcePropType, ProcessedColorValue } from 'react-native';
 
@@ -23,6 +24,7 @@ export interface Maneuver {
    */
   tintSymbolImage?: null | number | ColorValue | ProcessedColorValue;
   instructionVariants: string[];
+  attributedInstructionVariants: AttributedText[];
 
   // not yet implemented
   dashboardInstructionVariants?: string[];
