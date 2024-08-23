@@ -56,6 +56,7 @@ class EventEmitter(
     const val PanBeganWithDirection = "panBeganWithDirection"
     const val PanEndedWithDirection = "panEndedWithDirection"
     const val PanWithDirection = "panWithDirection"
+    const val DidUpdatePanGestureWithTranslation = "didUpdatePanGestureWithTranslation"
     const val DidBeginPanGesture = "didBeginPanGesture"
     const val DidDismissPanningInterface = "didDismissPanningInterface"
     const val WillDismissPanningInterface = "willDismissPanningInterface"
