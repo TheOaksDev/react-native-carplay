@@ -84,7 +84,6 @@ export interface MapTemplateConfig extends TemplateConfig {
    */
   onAlertActionPressed?(e: { secondary?: boolean; primary?: boolean }): void;
   onMapButtonPressed?(e: { id: string; template: string }): void;
-  onUpdatePanGestureWithTranslation?(e: { translation: { x: number; y: number }; velocity: { x: number; y: number } }): void;
   onPanWithDirection?(e: { direction: string }): void;
   onPanBeganWithDirection?(e: { direction: string }): void;
   onPanEndedWithDirection?(e: { direction: string }): void;
@@ -113,7 +112,6 @@ export class MapTemplate extends Template<MapTemplateConfig> {
     return {
       alertActionPressed: 'onAlertActionPressed',
       mapButtonPressed: 'onMapButtonPressed',
-      didUpdatePanGestureWithTranslation: 'onUpdatePanGestureWithTranslation',
       panWithDirection: 'onPanWithDirection',
       panBeganWithDirection: 'onPanBeganWithDirection',
       panEndedWithDirection: 'onPanEndedWithDirection',

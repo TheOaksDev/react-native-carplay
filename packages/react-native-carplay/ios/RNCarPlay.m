@@ -102,7 +102,6 @@ RCT_EXPORT_MODULE();
         @"panBeganWithDirection",
         @"panEndedWithDirection",
         @"panWithDirection",
-        @"didUpdatePanGestureWithTranslation",
         @"didBeginPanGesture",
         @"didDismissPanningInterface",
         @"willDismissPanningInterface",
