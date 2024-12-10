@@ -23,8 +23,9 @@
         <data android:scheme="geo" />
       </intent-filter>
     </service>
+
     <meta-data
       android:name="androidx.car.app.minCarApiLevel"
-      android:value="1" />
+      android:value="3" />
   </application>
 </manifest>

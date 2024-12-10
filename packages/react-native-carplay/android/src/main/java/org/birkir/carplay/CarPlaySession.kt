@@ -55,12 +55,14 @@ class CarPlaySession(private val reactInstanceManager: ReactInstanceManager) : S
       reactInstanceManager.addReactInstanceEventListener(
         object : ReactInstanceManager.ReactInstanceEventListener {
           override fun onReactContextInitialized(reactContext: ReactContext) {
+            Log.d(TAG, "React context initialized")
             invokeStartTask(reactContext)
             reactInstanceManager.removeReactInstanceEventListener(this)
           }
         })
       reactInstanceManager.createReactContextInBackground()
     } else {
+      Log.d(TAG, "Using existing React context")
       invokeStartTask(reactContext)
     }
   }
@@ -94,9 +96,8 @@ class CarPlaySession(private val reactInstanceManager: ReactInstanceManager) : S
 
   override fun onDestroy(owner: LifecycleOwner) {
     Log.i(TAG, "onDestroy")
-    val context = carContext
-    // stop services here, if any
-  }
+    // Unregister any receivers or listeners
+}
 
   override fun onNewIntent(intent: Intent) {
     // handle intents

@@ -129,6 +129,8 @@ abstract class RCTTemplate(
       }
       builder.setOnClickListener {
         if (id != null) {
+          Log.d("Event Emitter ID", eventEmitter.toString())
+          Log.d("CarScene Event Emitter ID", carScreenContext.eventEmitter.toString())
           eventEmitter.buttonPressed(id)
         }
       }

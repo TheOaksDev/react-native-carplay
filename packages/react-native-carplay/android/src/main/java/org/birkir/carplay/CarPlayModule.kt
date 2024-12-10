@@ -10,6 +10,7 @@ import androidx.car.app.CarContext
 import androidx.car.app.CarToast
 import androidx.car.app.ScreenManager
 import androidx.car.app.SessionInfo
+import androidx.car.app.model.Action
 import androidx.car.app.model.Alert
 import androidx.car.app.model.AlertCallback
 import androidx.car.app.model.CarText
@@ -56,7 +57,7 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
   init {
     reactContext.addLifecycleEventListener(object : LifecycleEventListener {
       override fun onHostResume() {
-        eventEmitter = EventEmitter(reactContext)
+        eventEmitter = EventEmitter(reactContext, "")
         reactContext.getNativeModule(DevSettingsModule::class.java)
           ?.addMenuItem("Reload Android Auto")
       }
@@ -120,7 +121,7 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
   fun updateTemplate(templateId: String, config: ReadableMap) {
     handler.post {
       carTemplates[templateId] = config;
-      val screen = carScreens[name]
+      val screen = getScreen(templateId)
       if (screen != null) {
         val carScreenContext = carScreenContexts[screen];
         if (carScreenContext != null) {
@@ -140,6 +141,22 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
       if (screen != null) {
         currentCarScreen = screen
         screenManager?.popToRoot()
+        screenManager?.push(screen)
+      }
+    }
+  }
+
+  @ReactMethod
+  fun popToRootTemplate(animated: Boolean?) {
+    Log.d(TAG, "Pop to Root Template")
+    handler.post {
+      screenManager?.popToRoot()
+      removeScreen(currentCarScreen)
+      currentCarScreen = screenManager!!.top as CarScreen
+      currentCarScreen?.invalidate()
+
+      val screen = getScreen("driverRootTemplate")
+      if (screen != null) {
         screenManager?.push(screen)
       }
     }
@@ -187,6 +204,10 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
 
   @ReactMethod
   fun toast(text: String, duration: Int) {
+    if (!::carContext.isInitialized) {
+      Log.e(TAG, "carContext is not initialized. Cannot show toast.")
+      return
+    }
     CarToast.makeText(carContext, text, duration).show()
   }
 
@@ -196,6 +217,8 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
       val id = props.getInt("id");
       val title = parser.parseCarText(props.getString("title")!!, props);
       val duration = props.getInt("duration").toLong();
+      Log.d("alert Emitter ID", eventEmitter.toString())
+
       val alert = Alert.Builder(id, title, duration).apply {
         setCallback(object : AlertCallback {
           override fun onCancel(reason: Int) {
@@ -205,9 +228,11 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
               AlertCallback.REASON_NOT_SUPPORTED -> "notSupported"
               else -> "unknown"
             }
+            Log.d("onCancel Emitter ID", eventEmitter.toString())
             eventEmitter?.alertActionPressed("cancel", reasonString);
           }
           override fun onDismiss() {
+            Log.d("onDismiss Emitter ID", eventEmitter.toString())
             eventEmitter?.alertActionPressed("dismiss" );
           }
         })
@@ -215,6 +240,7 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
         props.getMap("icon")?.let { setIcon(parser.parseCarIcon(it)) }
         props.getArray("actions")?.let {
           for (i in 0 until it.size()) {
+
             addAction(parser.parseAction(it.getMap(i)));
           }
         }
@@ -271,6 +297,10 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
   }
 
   private fun createScreen(templateId: String): CarScreen? {
+    if (!::carContext.isInitialized) {
+        Log.e(TAG, "carContext not initialized")
+        return null
+    }
     val config = carTemplates[templateId];
     if (config != null) {
       val screen = CarScreen(carContext)

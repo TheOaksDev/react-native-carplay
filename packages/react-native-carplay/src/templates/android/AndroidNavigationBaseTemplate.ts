@@ -1,6 +1,7 @@
 import { AppRegistry, Platform } from 'react-native';
 import { Template, TemplateConfig } from '../Template';
 import { CarPlay } from '../../CarPlay';
+import { NavigationTemplateConfig } from './NavigationTemplate';
 
 export interface AndroidNavigationBaseTemplateConfig extends TemplateConfig {
   /**
@@ -12,6 +13,8 @@ export interface AndroidNavigationBaseTemplateConfig extends TemplateConfig {
 
   onDidShowPanningInterface?(): void;
   onDidDismissPanningInterface?(): void;
+  onButtonPressed?(id: string): void;
+  onAlertActionPressed?(e: { secondary?: boolean; primary?: boolean }): void;
 }
 
 export class AndroidNavigationBaseTemplate<
@@ -21,6 +24,8 @@ export class AndroidNavigationBaseTemplate<
     return {
       didShowPanningInterface: 'onDidShowPanningInterface',
       didDismissPanningInterface: 'onDidDismissPanningInterface',
+      buttonPressed: 'onButtonPressed',
+      alertActionPressed: 'onAlertActionPressed',
     };
   }
 
@@ -42,5 +47,35 @@ export class AndroidNavigationBaseTemplate<
       this.parseConfig({ type: this.type, ...config, render: true }),
       callbackFn,
     );
+  }
+
+  /**
+   * Update MapTemplate configuration
+   */
+  public updateConfig(config: T) {
+    this.config = config;
+    CarPlay.bridge.updateMapTemplateConfig(this.id, this.parseConfig(config));
+  }
+
+  /**
+   * Shows the panning interface over the map.
+   *
+   * Calling this method while displaying the panning interface has no effect.
+   *
+   * While showing the panning interface, the system hides all map buttons. The system doesn't provide a button to dismiss the panning interface. Instead, you must provide a map button in the navigation bar that the user taps to dismiss the panning interface.
+   * @param animated A Boolean value that determines whether to animate the panning interface.
+   */
+  public showPanningInterface(animated = false) {
+    CarPlay.bridge.showPanningInterface(this.id, animated);
+  }
+
+  /**
+   * Dismisses the panning interface.
+   *
+   * When dismissing the panning interface, the system shows the previously hidden map buttons.
+   * @param animated A Boolean value that determines whether to animate the dismissal of the panning interface.
+   */
+  public dismissPanningInterface(animated = false) {
+    CarPlay.bridge.dismissPanningInterface(this.id, animated);
   }
 }

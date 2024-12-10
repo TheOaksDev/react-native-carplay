@@ -159,6 +159,14 @@ class EventEmitter(
     if (templateId != null && !data.hasKey("templateId")) {
       data.putString("templateId", templateId)
     }
+
+    // issue with templateID being null/undefined
+    // when its not defined then the events do not pass to the JS side
+    if (!data.hasKey("templateId")) {
+      // temporary fix to set the templateId to a hardcoded ID value
+      data.putString("templateId", "driverRootTemplate")
+    }
+
     reactContext!!
       .getJSModule(RCTDeviceEventEmitter::class.java)
       .emit(eventName, data)
