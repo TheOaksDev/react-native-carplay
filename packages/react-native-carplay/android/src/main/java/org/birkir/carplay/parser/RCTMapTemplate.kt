@@ -10,11 +10,12 @@ import androidx.car.app.navigation.model.PanModeListener
 import androidx.car.app.navigation.model.PlaceListNavigationTemplate
 import androidx.car.app.navigation.model.RoutePreviewNavigationTemplate
 import com.facebook.react.bridge.ReadableMap
+import android.util.Log
 import org.birkir.carplay.screens.CarScreenContext
 
 class RCTMapTemplate(
   context: CarContext,
-  carScreenContext: CarScreenContext
+  carScreenContext: CarScreenContext,
 ) : RCTTemplate(context, carScreenContext) {
 
   override fun parse(props: ReadableMap): Template {
@@ -38,14 +39,18 @@ class RCTMapTemplate(
       parseActionStrip(it)
     }
     val panModeListener = PanModeListener { isInPanMode ->
+      Log.d(TAG, "isInPanMode: $isInPanMode")
       if (isInPanMode) {
+        Log.d(TAG, "showPanningInterface")
         eventEmitter.didShowPanningInterface()
       } else {
+        Log.d(TAG, "dismissPanningInterface")
         eventEmitter.didDismissPanningInterface()
       }
     }
     val mapController = MapController.Builder().apply {
       mapActionStrip?.let { setMapActionStrip(it); }
+      Log.d(TAG, "setPanModeListener")
       setPanModeListener(panModeListener)
     }.build()
     when (type) {

@@ -9,7 +9,8 @@ import org.birkir.carplay.screens.CarScreenContext
 
 class TemplateParser internal constructor(
   private val context: CarContext,
-  private val carScreenContext: CarScreenContext) {
+  private val carScreenContext: CarScreenContext,
+) {
 
   fun parse(props: ReadableMap): Template {
     val template = when (props.getString("type")) {

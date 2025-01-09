@@ -24,6 +24,9 @@ class EventEmitter(
     const val WillAppear = "willAppear"
     const val WillDisappear = "willDisappear"
     const val ButtonPressed = "buttonPressed"
+    const val Scroll = "scroll"
+    const val Scale = "scale"
+    const val Fling = "fling"
 
     // grid
     const val GridButtonPressed = "gridButtonPressed"
@@ -76,6 +79,7 @@ class EventEmitter(
   }
 
   fun didDisconnect() {
+    Log.d("EventEmitter", "Did disconnect")
     emit(DidDisconnect)
   }
 
@@ -143,11 +147,35 @@ class EventEmitter(
     emit(GridButtonPressed, event)
   }
 
+  fun onScroll(distanceX: Float, distanceY: Float) {
+    emit(Scroll, Arguments.createMap().apply {
+      putString("distanceX", distanceX.toString())
+      putString("distanceY", distanceY.toString())
+    })
+  }
+
+  fun onScale(focusX: Float, focusY: Float, scaleFactor: Float) {
+    emit(Scale, Arguments.createMap().apply {
+      putString("focusX", focusX.toString())
+      putString("focusY", focusY.toString())
+      putString("scaleFactor", scaleFactor.toString())
+    })
+  }
+
+  fun onFling(velocityX: Float, velocityY: Float) {
+    emit(Fling, Arguments.createMap().apply {
+      putString("velocityX", velocityX.toString())
+      putString("velocityY", velocityY.toString())
+    })
+  }
+
   fun didShowPanningInterface() {
+    Log.d("EventEmitter", "Did show panning interface")
     emit(DidShowPanningInterface)
   }
 
   fun didDismissPanningInterface() {
+    Log.d("EventEmitter", "Did dismiss panning interface")
     emit(DidDismissPanningInterface)
   }
 
@@ -164,7 +192,7 @@ class EventEmitter(
     // when its not defined then the events do not pass to the JS side
     if (!data.hasKey("templateId")) {
       // temporary fix to set the templateId to a hardcoded ID value
-      data.putString("templateId", "driverRootTemplate")
+      data.putString("templateId", "wridzCarplayRoot")
     }
 
     reactContext!!

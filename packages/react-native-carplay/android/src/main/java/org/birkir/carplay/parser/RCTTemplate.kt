@@ -59,7 +59,7 @@ import java.util.TimeZone
  */
 abstract class RCTTemplate(
   protected val context: CarContext,
-  protected val carScreenContext: CarScreenContext
+  protected val carScreenContext: CarScreenContext,
 ) {
 
   abstract fun parse(props: ReadableMap): Template
@@ -99,11 +99,19 @@ abstract class RCTTemplate(
   fun parseAction(map: ReadableMap?): Action {
     val type = map?.getString("type")
     if (type == "appIcon") {
-      return Action.APP_ICON
+      val appIconBuilder = Action.Builder(Action.APP_ICON)
+      return appIconBuilder.build()
     } else if (type == "back") {
-      return Action.BACK
+      val backBuilder = Action.Builder(Action.BACK)
+      return backBuilder.build()
     } else if (type == "pan") {
-      return Action.PAN
+      val panBuilder = Action.Builder(Action.PAN)
+
+      map.getMap("icon")?.let {
+        panBuilder.setIcon(parseCarIcon(it))
+      }
+
+      return panBuilder.build()
     }
     val id = map?.getString("id")
     val builder = Action.Builder()
@@ -131,6 +139,13 @@ abstract class RCTTemplate(
         if (id != null) {
           Log.d("Event Emitter ID", eventEmitter.toString())
           Log.d("CarScene Event Emitter ID", carScreenContext.eventEmitter.toString())
+          // map.getString("clickType")?.let {
+          //   Log.d("Callback ID", it)
+          //   callbacks[it]?.invoke(id) // Use the callback ID to invoke the callback
+          // }
+          // Log.d("Callbacks", callbacks.toString())
+          // Log.d("Callback ONPRESS", callbacks["onButtonPressed"].toString())
+
           eventEmitter.buttonPressed(id)
         }
       }

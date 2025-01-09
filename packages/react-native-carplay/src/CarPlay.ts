@@ -36,6 +36,7 @@ export interface InternalCarPlay extends NativeModule {
   setRootTemplate(templateId: string, animated: boolean): void;
   pushTemplate(templateId: string, animated: boolean): void;
   popToTemplate(templateId: string, animated: boolean): void;
+  getTemplate(templateId: string): PushableTemplates;
   popToRootTemplate(animated: boolean): void;
   popTemplate(animated: boolean): void;
   presentTemplate(templateId: string, animated: boolean): void;
@@ -89,6 +90,7 @@ export interface InternalCarPlay extends NativeModule {
   reactToUpdatedSearchText(id: string, items: unknown): void;
   updateTabBarTemplates(id: string, config: unknown): void;
   activateVoiceControlState(id: string, identifier: string): void;
+  getScreenDimensions(): Promise<WindowInformation>;
   // Android
   reload(): void;
   toast(message: string, duration: number): void;
@@ -161,7 +163,7 @@ export class CarPlayInterface {
 
   constructor() {
     this.emitter.addListener('didConnect', (window: WindowInformation) => {
-      console.log('we are connected yes!');
+      console.log('carplay is connected!');
       this.connected = true;
       this.window = window;
       this.onConnectCallbacks.forEach(callback => {
@@ -169,6 +171,7 @@ export class CarPlayInterface {
       });
     });
     this.emitter.addListener('didDisconnect', () => {
+      console.log('carplay is disconnected!');
       this.connected = false;
       this.window = undefined;
       this.onDisconnectCallbacks.forEach(callback => {
@@ -185,7 +188,7 @@ export class CarPlayInterface {
 
     // check if already connected this will fire any 'didConnect' events
     // if a connected is already present.
-    this.bridge.checkForConnection();
+    //this.bridge.checkForConnection();
   }
 
   /**
@@ -238,6 +241,14 @@ export class CarPlayInterface {
   }
 
   /**
+   * Returns the template with the given id.
+   * @param templateId The id of the template to return.
+   */
+  public getTemplate(templateId: string) {
+    return this.bridge.getTemplate(templateId);
+  }
+
+  /**
    * Pops all templates on the stack—except the root template—and updates the display.
    * @param animated A Boolean value that indicates whether the system animates the display of transitioning templates.
    */
@@ -268,6 +279,13 @@ export class CarPlayInterface {
    */
   public dismissTemplate(animated = true) {
     return this.bridge.dismissTemplate(animated);
+  }
+
+  /**
+   * Returns the current screen dimensions
+   */
+  public getScreenDimensions() {
+    return this.bridge.getScreenDimensions();
   }
 
   /**

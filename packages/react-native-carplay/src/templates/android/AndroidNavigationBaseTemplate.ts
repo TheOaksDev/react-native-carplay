@@ -15,6 +15,9 @@ export interface AndroidNavigationBaseTemplateConfig extends TemplateConfig {
   onDidDismissPanningInterface?(): void;
   onButtonPressed?(id: string): void;
   onAlertActionPressed?(e: { secondary?: boolean; primary?: boolean }): void;
+  onScroll?(e: { distanceX: number; distanceY: number }): void;
+  onScale?(e: { focusX: number; focusY: number; scaleFactor: number }): void;
+  onFling?(e: { velocityX: number; velocityY: number }): void;
 }
 
 export class AndroidNavigationBaseTemplate<
@@ -26,6 +29,9 @@ export class AndroidNavigationBaseTemplate<
       didDismissPanningInterface: 'onDidDismissPanningInterface',
       buttonPressed: 'onButtonPressed',
       alertActionPressed: 'onAlertActionPressed',
+      scroll: 'onScroll',
+      scale: 'onScale',
+      fling: 'onFling',
     };
   }
 
