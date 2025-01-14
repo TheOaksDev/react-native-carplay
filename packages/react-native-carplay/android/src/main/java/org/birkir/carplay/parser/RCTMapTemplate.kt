@@ -36,7 +36,7 @@ class RCTMapTemplate(
       parsePane(it)
     }
     val mapActionStrip = props.getArray("mapButtons")?.let {
-      parseActionStrip(it)
+      parseMapActionStrip(it)
     }
     val panModeListener = PanModeListener { isInPanMode ->
       Log.d(TAG, "isInPanMode: $isInPanMode")

@@ -54,6 +54,7 @@ class EventEmitter(
 
     // map
     const val MapButtonPressed = "mapButtonPressed"
+    const val PaneButtonPressed = "paneButtonPressed"
     const val DidUpdatePanGestureWithTranslation = "didUpdatePanGestureWithTranslation"
     const val DidEndPanGestureWithVelocity = "didEndPanGestureWithVelocity"
     const val PanBeganWithDirection = "panBeganWithDirection"
@@ -89,7 +90,19 @@ class EventEmitter(
     })
   }
 
-  fun barButtonPressed(templateId: String, buttonId: String) {
+  fun mapButtonPressed(buttonId: String) {
+    emit(MapButtonPressed, Arguments.createMap().apply {
+      putString("buttonId", buttonId)
+    })
+  }
+
+  fun paneButtonPressed(buttonId: String) {
+    emit(PaneButtonPressed, Arguments.createMap().apply {
+      putString("buttonId", buttonId)
+    })
+  }
+
+  fun barButtonPressed(buttonId: String) {
     emit(BarButtonPressed, Arguments.createMap().apply {
       putString("buttonId", buttonId)
     })
@@ -149,6 +162,7 @@ class EventEmitter(
 
   fun onScroll(distanceX: Float, distanceY: Float) {
     emit(Scroll, Arguments.createMap().apply {
+      Log.d("EventEmitter", "Emitting scroll event with distanceX: $distanceX and distanceY: $distanceY")
       putString("distanceX", distanceX.toString())
       putString("distanceY", distanceY.toString())
     })
@@ -156,6 +170,7 @@ class EventEmitter(
 
   fun onScale(focusX: Float, focusY: Float, scaleFactor: Float) {
     emit(Scale, Arguments.createMap().apply {
+      Log.d("EventEmitter", "Emitting scale event with focusX: $focusX, focusY: $focusY, and scaleFactor: $scaleFactor")
       putString("focusX", focusX.toString())
       putString("focusY", focusY.toString())
       putString("scaleFactor", scaleFactor.toString())
@@ -164,6 +179,7 @@ class EventEmitter(
 
   fun onFling(velocityX: Float, velocityY: Float) {
     emit(Fling, Arguments.createMap().apply {
+      Log.d("EventEmitter", "Emitting fling event with velocityX: $velocityX and velocityY: $velocityY")
       putString("velocityX", velocityX.toString())
       putString("velocityY", velocityY.toString())
     })
@@ -184,15 +200,16 @@ class EventEmitter(
       Log.e("RNCarPlay", "Could not send event $eventName. React context is null!")
       return
     }
+    Log.d("EventEmitter", "Emitting event $eventName with data $data")
+    Log.d("EventEmitter", "Template ID: $templateId")
     if (templateId != null && !data.hasKey("templateId")) {
+      Log.d("EventEmitter", "Setting templateId to $templateId")
       data.putString("templateId", templateId)
-    }
-
-    // issue with templateID being null/undefined
-    // when its not defined then the events do not pass to the JS side
-    if (!data.hasKey("templateId")) {
-      // temporary fix to set the templateId to a hardcoded ID value
-      data.putString("templateId", "wridzCarplayRoot")
+    } else if (!data.hasKey("templateId")) {
+      // issue with templateID being null/undefined
+      // when its not defined then the events do not pass to the JS side
+      Log.d("EventEmitter", "Setting templateId to wridzCarplayRoot")
+      data.putString("templateId", "wridzCarplayRoot") // temporary fix to set the templateId to a hardcoded ID value
     }
 
     reactContext!!

@@ -153,11 +153,121 @@ abstract class RCTTemplate(
     return builder.build()
   }
 
+  fun parsePaneAction(map: ReadableMap?): Action {
+    val type = map?.getString("type")
+    if (type == "appIcon") {
+      val appIconBuilder = Action.Builder(Action.APP_ICON)
+      return appIconBuilder.build()
+    } else if (type == "back") {
+      val backBuilder = Action.Builder(Action.BACK)
+      return backBuilder.build()
+    } else if (type == "pan") {
+      val panBuilder = Action.Builder(Action.PAN)
+
+      map.getMap("icon")?.let {
+        panBuilder.setIcon(parseCarIcon(it))
+      }
+
+      return panBuilder.build()
+    }
+    val id = map?.getString("id")
+    val builder = Action.Builder()
+    if (map != null) {
+      map.getString("title")?.let {
+        builder.setTitle(it)
+      }
+      map.getMap("icon")?.let {
+        builder.setIcon(parseCarIcon(it))
+      }
+      map.getString("visibility")?.let {
+        if (it == "primary") {
+          builder.setFlags(FLAG_PRIMARY)
+        }
+        if (it == "persistent") {
+          builder.setFlags(FLAG_IS_PERSISTENT)
+        }
+      }
+      try {
+        builder.setBackgroundColor(parseColor(map.getString("backgroundColor")))
+      } catch (e: Exception) {
+        e.printStackTrace()
+      }
+      builder.setOnClickListener {
+        if (id != null) {
+          Log.d("Event Emitter ID", eventEmitter.toString())
+          Log.d("CarScene Event Emitter ID", carScreenContext.eventEmitter.toString())
+          eventEmitter.paneButtonPressed(id)
+        }
+      }
+    }
+    return builder.build()
+  }
+
+  fun parseMapAction(map: ReadableMap?): Action {
+    val type = map?.getString("type")
+    if (type == "appIcon") {
+      val appIconBuilder = Action.Builder(Action.APP_ICON)
+      return appIconBuilder.build()
+    } else if (type == "back") {
+      val backBuilder = Action.Builder(Action.BACK)
+      return backBuilder.build()
+    } else if (type == "pan") {
+      val panBuilder = Action.Builder(Action.PAN)
+
+      map.getMap("icon")?.let {
+        panBuilder.setIcon(parseCarIcon(it))
+      }
+
+      return panBuilder.build()
+    }
+    val id = map?.getString("id")
+    val builder = Action.Builder()
+    if (map != null) {
+      map.getString("title")?.let {
+        builder.setTitle(it)
+      }
+      map.getMap("icon")?.let {
+        builder.setIcon(parseCarIcon(it))
+      }
+      map.getString("visibility")?.let {
+        if (it == "primary") {
+          builder.setFlags(FLAG_PRIMARY)
+        }
+        if (it == "persistent") {
+          builder.setFlags(FLAG_IS_PERSISTENT)
+        }
+      }
+      try {
+        builder.setBackgroundColor(parseColor(map.getString("backgroundColor")))
+      } catch (e: Exception) {
+        e.printStackTrace()
+      }
+      builder.setOnClickListener {
+        if (id != null) {
+          Log.d("Event Emitter ID", eventEmitter.toString())
+          Log.d("CarScene Event Emitter ID", carScreenContext.eventEmitter.toString())
+          eventEmitter.mapButtonPressed(id)
+        }
+      }
+    }
+    return builder.build()
+  }
+
   protected fun parseActionStrip(actions: ReadableArray): ActionStrip {
     val builder = ActionStrip.Builder()
     for (i in 0 until actions.size()) {
       val actionMap = actions.getMap(i)
       val action = parseAction(actionMap)
+      builder.addAction(action)
+    }
+    return builder.build()
+  }
+
+  protected fun parseMapActionStrip(actions: ReadableArray): ActionStrip {
+    val builder = ActionStrip.Builder()
+    for (i in 0 until actions.size()) {
+      val actionMap = actions.getMap(i)
+      val action = parseMapAction(actionMap)
       builder.addAction(action)
     }
     return builder.build()
@@ -318,7 +428,7 @@ abstract class RCTTemplate(
       }
       item.getArray("actions")?.let {
         for (i in 0 until it.size()) {
-          addAction(parseAction(it.getMap(i)))
+          addAction(parsePaneAction(it.getMap(i)))
         }
       }
       item.getArray("items")?.let {

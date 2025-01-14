@@ -84,6 +84,7 @@ export interface MapTemplateConfig extends TemplateConfig {
    */
   onAlertActionPressed?(e: { secondary?: boolean; primary?: boolean }): void;
   onMapButtonPressed?(e: { id: string; template: string }): void;
+  onPaneButtonPressed?(e: { id: string; template: string }): void;
   onPanWithDirection?(e: { direction: string }): void;
   onPanBeganWithDirection?(e: { direction: string }): void;
   onPanEndedWithDirection?(e: { direction: string }): void;
@@ -112,6 +113,7 @@ export class MapTemplate extends Template<MapTemplateConfig> {
     return {
       alertActionPressed: 'onAlertActionPressed',
       mapButtonPressed: 'onMapButtonPressed',
+      paneButtonPressed: 'onPaneButtonPressed',
       panWithDirection: 'onPanWithDirection',
       panBeganWithDirection: 'onPanBeganWithDirection',
       panEndedWithDirection: 'onPanEndedWithDirection',

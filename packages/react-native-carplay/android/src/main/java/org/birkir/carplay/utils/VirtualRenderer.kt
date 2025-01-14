@@ -41,12 +41,16 @@ class VirtualRenderer(private val context: CarContext, private val moduleName: S
         val params = Arguments.createMap()
         params.putString("distanceX", distanceX.toString())
         params.putString("distanceY", distanceY.toString())
-        params.putString("templateId", "wridzCarplayRoot")
+        Log.d(TAG, "moduleName: $moduleName")
+        params.putString("templateId", moduleName)
         val reactContext = instanceManager.currentReactContext
         if (reactContext != null) {
+          Log.d(TAG, "reactContext is not null")
           reactContext!!
                   .getJSModule(RCTDeviceEventEmitter::class.java)
                   .emit("scroll", params)
+        } else {
+          Log.w(TAG, "reactContext is null")
         }
       }
 
@@ -57,12 +61,16 @@ class VirtualRenderer(private val context: CarContext, private val moduleName: S
         val params = Arguments.createMap()
         params.putString("velocityX", velocityX.toString())
         params.putString("velocityY", velocityY.toString())
-        params.putString("templateId", "wridzCarplayRoot")
+        Log.d(TAG, "moduleName: $moduleName")
+        params.putString("templateId", moduleName)
         val reactContext = instanceManager.currentReactContext
         if (reactContext != null) {
+          Log.d(TAG, "reactContext is not null")
           reactContext!!
                   .getJSModule(RCTDeviceEventEmitter::class.java)
                   .emit("fling", params)
+        } else {
+          Log.w(TAG, "reactContext is null")
         }
       }
 
@@ -74,12 +82,16 @@ class VirtualRenderer(private val context: CarContext, private val moduleName: S
         params.putString("focusX", focusX.toString())
         params.putString("focusY", focusY.toString())
         params.putString("scaleFactor", scaleFactor.toString())
-        params.putString("templateId", "wridzCarplayRoot")
+        Log.d(TAG, "moduleName: $moduleName")
+        params.putString("templateId", moduleName)
         val reactContext = instanceManager.currentReactContext
         if (reactContext != null) {
+          Log.d(TAG, "reactContext is not null")
           reactContext!!
                   .getJSModule(RCTDeviceEventEmitter::class.java)
                   .emit("scale", params)
+        } else {
+          Log.w(TAG, "reactContext is null")
         }
       }
 

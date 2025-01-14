@@ -57,6 +57,7 @@ export interface InternalCarPlay extends NativeModule {
   createTemplate(id: string, config: unknown, callback?: unknown): void;
   updateTemplate(id: string, config: unknown): void;
   invalidate(id: string): void;
+  getCurrentTemplateId(): Promise<string>;
   startNavigationSession(
     id: string,
     tripId: string,

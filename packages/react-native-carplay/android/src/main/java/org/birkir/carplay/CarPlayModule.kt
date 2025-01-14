@@ -76,7 +76,7 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
     this.carContext = carContext
     this.currentCarScreen = currentCarScreen
     screenManager = currentCarScreen.screenManager
-    carScreens["wridzCarplayRoot"] = this.currentCarScreen
+    carScreens[currentCarScreen.templateId] = this.currentCarScreen
     carContext.onBackPressedDispatcher.addCallback(
             object : OnBackPressedCallback(true) {
               override fun handleOnBackPressed() {
@@ -125,8 +125,9 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
         val carScreenContext = carScreenContexts[screen]
         if (carScreenContext != null) {
           val template = parseTemplate(config, carScreenContext)
-          screen.setTemplate(template, templateId, config)
           screen.invalidate()
+          screen.setTemplate(template, templateId, config)
+          carScreens[templateId] = screen
         }
       }
     }
@@ -154,6 +155,7 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
         Log.e(TAG, "ScreenManager is null, cannot pop to wridzCarplayRoot")
         return@post
       }
+      Log.d(TAG, "Current screen before pop: $currentCarScreen")
     
       screenManager?.popToRoot()
       Log.d(TAG, "Popped to wridzCarplayRoot")
@@ -163,18 +165,13 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
         Log.d(TAG, "Removing current screen: $it")
         removeScreen(it)
     } ?: Log.d(TAG, "No current screen to remove")
-
+      Log.d(TAG, "Current screen after removal: $currentCarScreen")
       currentCarScreen = screenManager?.top as? CarScreen
       currentCarScreen?.invalidate()
-      Log.d(TAG, "Current screen after pop: $currentCarScreen")
+      Log.d(TAG, "Current screen after invalidation: $currentCarScreen")
 
-      val screen = getScreen("wridzCarplayRoot")
-      if (screen != null) {
-        Log.d(TAG, "Pushing wridzCarplayRoot screen")
-        screenManager?.push(screen)
-      } else {
-        Log.e(TAG, "wridzCarplayRoot screen not found")
-      }
+      currentCarScreen = screenManager?.top as? CarScreen
+      Log.d(TAG, "Updated current screen after invalidation: $currentCarScreen")
     }
   }
 
@@ -299,8 +296,9 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
         val carScreenContext = carScreenContexts[screen]
         if (carScreenContext != null) {
           val template = parseTemplate(config, carScreenContext)
-          screen.setTemplate(template, templateId, config)
           screen.invalidate()
+          screen.setTemplate(template, templateId, config)
+          carScreens[templateId] = screen
         }
       }
     }
@@ -345,6 +343,13 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
     )
   }
 
+  @ReactMethod
+  fun getCurrentTemplateId(promise: Promise) {
+    promise.resolve(Arguments.createMap().apply {
+      putString("templateId", currentCarScreen?.templateId ?: "unknown")
+    })
+  }
+
   // Others
 
   @ReactMethod
@@ -362,19 +367,23 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
     handler.post {
       if (!::carContext.isInitialized) {
         promise.reject("CarContextNotInitialized", "CarContext is not initialized.")
+        return@post
       }
 
-      val displayMetrics = carContext.resources.displayMetrics
-      val width = displayMetrics.widthPixels
-      val height = displayMetrics.heightPixels
+      try {
+        val displayMetrics = carContext.resources.displayMetrics
+        val width = displayMetrics.widthPixels
+        val height = displayMetrics.heightPixels
 
-      val dimensions =
-              Arguments.createMap().apply {
-                putInt("width", width)
-                putInt("height", height)
-              }
+        val dimensions = Arguments.createMap().apply {
+            putInt("width", width)
+            putInt("height", height)
+        }
 
-      promise.resolve(dimensions)
+        promise.resolve(dimensions)
+      } catch (e: Exception) {
+          promise.reject("Error", "Failed to get screen dimensions: ${e.message}")
+      }
     }
   }
 

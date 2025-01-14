@@ -20,6 +20,7 @@ import org.birkir.carplay.utils.VirtualRenderer
 class CarScreen(carContext: CarContext) : Screen(carContext) {
 
   var template: Template? = null
+  var templateId: String? = null
   private var virtualRenderer: VirtualRenderer? = null
 
   init {
@@ -51,12 +52,13 @@ class CarScreen(carContext: CarContext) : Screen(carContext) {
         return
       }
       virtualRenderer = VirtualRenderer(carContext, templateId)
+      this.templateId = templateId
     }
     this.template = template
   }
 
   override fun onGetTemplate(): Template {
-    Log.d(TAG, "onGetTemplate for $marker")
+    Log.d(TAG, "onGetTemplate for $templateId")
     return template ?: PaneTemplate.Builder(
       Pane.Builder().setLoading(true).build()
     ).setTitle("RNCarPlay loading...").build()

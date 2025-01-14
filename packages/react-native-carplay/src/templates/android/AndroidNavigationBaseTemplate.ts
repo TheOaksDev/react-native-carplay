@@ -10,10 +10,10 @@ export interface AndroidNavigationBaseTemplateConfig extends TemplateConfig {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   component: React.ComponentType<any>;
-
   onDidShowPanningInterface?(): void;
   onDidDismissPanningInterface?(): void;
-  onButtonPressed?(id: string): void;
+  onMapButtonPressed?(e: { id: string }): void;
+  onButtonPressed?(e: { id: string }): void;
   onAlertActionPressed?(e: { secondary?: boolean; primary?: boolean }): void;
   onScroll?(e: { distanceX: number; distanceY: number }): void;
   onScale?(e: { focusX: number; focusY: number; scaleFactor: number }): void;
@@ -27,6 +27,7 @@ export class AndroidNavigationBaseTemplate<
     return {
       didShowPanningInterface: 'onDidShowPanningInterface',
       didDismissPanningInterface: 'onDidDismissPanningInterface',
+      mapButtonPressed: 'onMapButtonPressed',
       buttonPressed: 'onButtonPressed',
       alertActionPressed: 'onAlertActionPressed',
       scroll: 'onScroll',
