@@ -253,6 +253,56 @@ abstract class RCTTemplate(
     return builder.build()
   }
 
+  fun parseRowAction(map: ReadableMap?, rowId: String, index: Int): Action {
+    val type = map?.getString("type")
+    if (type == "appIcon") {
+      val appIconBuilder = Action.Builder(Action.APP_ICON)
+      return appIconBuilder.build()
+    } else if (type == "back") {
+      val backBuilder = Action.Builder(Action.BACK)
+      return backBuilder.build()
+    } else if (type == "pan") {
+      val panBuilder = Action.Builder(Action.PAN)
+
+      map.getMap("icon")?.let {
+        panBuilder.setIcon(parseCarIcon(it))
+      }
+
+      return panBuilder.build()
+    }
+    val id = map?.getString("id")
+    val builder = Action.Builder()
+    if (map != null) {
+      map.getString("title")?.let {
+        builder.setTitle(it)
+      }
+      map.getMap("icon")?.let {
+        builder.setIcon(parseCarIcon(it))
+      }
+      map.getString("visibility")?.let {
+        if (it == "primary") {
+          builder.setFlags(FLAG_PRIMARY)
+        }
+        if (it == "persistent") {
+          builder.setFlags(FLAG_IS_PERSISTENT)
+        }
+      }
+      try {
+        builder.setBackgroundColor(parseColor(map.getString("backgroundColor")))
+      } catch (e: Exception) {
+        e.printStackTrace()
+      }
+      builder.setOnClickListener {
+        if (id != null) {
+          Log.d("Event Emitter ID", eventEmitter.toString())
+          Log.d("CarScene Event Emitter ID", carScreenContext.eventEmitter.toString())
+          eventEmitter.didSelectListItemAction(id, rowId, index)
+        }
+      }
+    }
+    return builder.build()
+  }
+
   protected fun parseActionStrip(actions: ReadableArray): ActionStrip {
     val builder = ActionStrip.Builder()
     for (i in 0 until actions.size()) {
@@ -295,12 +345,16 @@ abstract class RCTTemplate(
       item.getString("detailText")?.let { addText(it) }
       item.getMap("image")?.let { setImage(parseCarIcon(it)) }
       if (item.hasKey("browsable") && item.getBoolean("browsable")) {
+        setBrowsable(true)
         setOnClickListener {
           eventEmitter.didSelectListItem(
             id,
             index
           )
         }
+      }
+      item.getMap("action")?.let {
+        addAction(parseRowAction(it, id, index))
       }
     }.build()
   }

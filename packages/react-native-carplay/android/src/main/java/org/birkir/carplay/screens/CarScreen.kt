@@ -20,7 +20,6 @@ import org.birkir.carplay.utils.VirtualRenderer
 class CarScreen(carContext: CarContext) : Screen(carContext) {
 
   var template: Template? = null
-  var templateId: String? = null
   private var virtualRenderer: VirtualRenderer? = null
 
   init {
@@ -44,21 +43,20 @@ class CarScreen(carContext: CarContext) : Screen(carContext) {
 
     if (isSurfaceTemplate && virtualRenderer == null) {
       Log.d(TAG, "setTemplate: received navigation template with args: $templateId")
-      if (templateId == null) {
-        Log.w(
-          TAG,
-          "setTemplate: moduleName is null, please make sure you are setting id for map-template in ReactNative",
-        )
-        return
-      }
+      // if (templateId == null) {
+      //   Log.w(
+      //     TAG,
+      //     "setTemplate: moduleName is null, please make sure you are setting id for map-template in ReactNative",
+      //   )
+      //   return
+      // }
       virtualRenderer = VirtualRenderer(carContext, templateId)
-      this.templateId = templateId
     }
+    this.marker = templateId
     this.template = template
   }
 
   override fun onGetTemplate(): Template {
-    Log.d(TAG, "onGetTemplate for $templateId")
     return template ?: PaneTemplate.Builder(
       Pane.Builder().setLoading(true).build()
     ).setTitle("RNCarPlay loading...").build()

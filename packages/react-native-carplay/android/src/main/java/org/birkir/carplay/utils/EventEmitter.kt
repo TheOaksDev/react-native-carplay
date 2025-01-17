@@ -36,7 +36,8 @@ class EventEmitter(
 
     // list
     const val DidSelectListItem = "didSelectListItem"
-
+    const val DidSelectListItemAction = "didSelectListItemAction"
+    
     // search
     const val UpdatedSearchText = "updatedSearchText"
     const val SearchButtonPressed = "searchButtonPressed"
@@ -116,7 +117,15 @@ class EventEmitter(
 
   fun didSelectListItem(id: String, index: Int) {
     emit(DidSelectListItem, Arguments.createMap().apply {
-      putString("id", id)
+      putString("buttonId", id)
+      putInt("index", index)
+    })
+  }
+
+  fun didSelectListItemAction(id: String, rowId: String, index: Int) {
+    emit(DidSelectListItemAction, Arguments.createMap().apply {
+      putString("buttonId", id)
+      putString("rowId", rowId)
       putInt("index", index)
     })
   }
@@ -139,8 +148,9 @@ class EventEmitter(
     })
   }
 
-  fun alertActionPressed(type: String, reason: String? = null) {
+  fun alertActionPressed(type: String, templateId: String, reason: String? = null) {
     emit(AlertActionPressed, Arguments.createMap().apply {
+      putString("templateId", templateId);
       putString("type", type);
       reason?.let { putString("reason", reason) }
     });

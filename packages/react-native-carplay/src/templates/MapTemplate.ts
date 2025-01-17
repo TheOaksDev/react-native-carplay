@@ -83,6 +83,9 @@ export interface MapTemplateConfig extends TemplateConfig {
    * @param e Event
    */
   onAlertActionPressed?(e: { secondary?: boolean; primary?: boolean }): void;
+  onButtonPressed?(e: { id: string; template: string }): void;
+  onDidSelectListItemAction?(e: { id: string; index: number; template: string }): void;
+  onDidSelectListItem?(e: { id: string; index: number; template: string }): void;
   onMapButtonPressed?(e: { id: string; template: string }): void;
   onPaneButtonPressed?(e: { id: string; template: string }): void;
   onPanWithDirection?(e: { direction: string }): void;
@@ -112,8 +115,11 @@ export class MapTemplate extends Template<MapTemplateConfig> {
   get eventMap() {
     return {
       alertActionPressed: 'onAlertActionPressed',
+      buttonPressed: 'onButtonPressed',
       mapButtonPressed: 'onMapButtonPressed',
       paneButtonPressed: 'onPaneButtonPressed',
+      didSelectListItem: 'onDidSelectListItem',
+      didSelectListItemAction: 'onDidSelectListItemAction',
       panWithDirection: 'onPanWithDirection',
       panBeganWithDirection: 'onPanBeganWithDirection',
       panEndedWithDirection: 'onPanEndedWithDirection',
@@ -126,7 +132,7 @@ export class MapTemplate extends Template<MapTemplateConfig> {
   constructor(public config: MapTemplateConfig) {
     super(config);
 
-    if (config.component) {
+    if (config.component && Platform.OS !== 'android') {
       AppRegistry.registerComponent(this.id, () => config.component);
     }
 

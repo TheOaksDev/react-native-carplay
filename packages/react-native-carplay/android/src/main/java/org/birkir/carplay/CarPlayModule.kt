@@ -72,19 +72,37 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
   }
 
   fun setCarContext(carContext: CarContext, currentCarScreen: CarScreen) {
-    parser = Parser(carContext, CarScreenContext("", eventEmitter!!, carScreens))
-    this.carContext = carContext
-    this.currentCarScreen = currentCarScreen
-    screenManager = currentCarScreen.screenManager
-    carScreens[currentCarScreen.templateId] = this.currentCarScreen
-    carContext.onBackPressedDispatcher.addCallback(
-            object : OnBackPressedCallback(true) {
-              override fun handleOnBackPressed() {
-                eventEmitter?.backButtonPressed(screenManager?.top?.marker)
+    if (carContext == null) {
+      Log.e("CarPlayModule", "carContext is null")
+    }
+    if (eventEmitter == null) {
+      Log.e("CarPlayModule", "eventEmitter is null")
+    }
+    if (carScreens == null) {
+      Log.e("CarPlayModule", "carScreens is null")
+    }
+
+    // Ensure all necessary components are initialized
+    if (carContext != null && eventEmitter != null && carScreens != null) {
+      parser = Parser(carContext, CarScreenContext("", eventEmitter!!, carScreens))
+      this.carContext = carContext
+      this.currentCarScreen = currentCarScreen
+      screenManager = currentCarScreen.screenManager
+
+      // TemplateID must be hardset to default root component
+      // this method is only called once when the car context is initialized
+      carScreens["wridzCarplayRoot"] = this.currentCarScreen
+      carContext.onBackPressedDispatcher.addCallback(
+              object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                  eventEmitter?.backButtonPressed(screenManager?.top?.marker)
+                }
               }
-            }
-    )
-    eventEmitter?.didConnect()
+      )
+      eventEmitter?.didConnect()
+    } else {
+      Log.e("CarPlayModule", "Failed to initialize Parser due to null dependencies")
+    }
   }
 
   private fun parseTemplate(config: ReadableMap, carScreenContext: CarScreenContext): Template {
@@ -119,16 +137,24 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
   @ReactMethod
   fun updateTemplate(templateId: String, config: ReadableMap) {
     handler.post {
+      Log.d(TAG, "Updating template $templateId")
       carTemplates[templateId] = config
       val screen = getScreen(templateId)
       if (screen != null) {
+        Log.d(TAG, "Screen found for templateId $templateId")
         val carScreenContext = carScreenContexts[screen]
         if (carScreenContext != null) {
+          Log.d(TAG, "CarScreenContext found for templateId $templateId")
           val template = parseTemplate(config, carScreenContext)
           screen.invalidate()
           screen.setTemplate(template, templateId, config)
+
+          val newContext = createCarScreenContext(screen)
+          carScreenContexts[screen] = newContext
           carScreens[templateId] = screen
         }
+      } else {
+        Log.d(TAG, "Screen with templateId $templateId is null")
       }
     }
   }
@@ -142,6 +168,8 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
         currentCarScreen = screen
         screenManager?.popToRoot()
         screenManager?.push(screen)
+      } else {
+        Log.d(TAG, "Screen with templateId $templateId is null")
       }
     }
   }
@@ -155,23 +183,42 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
         Log.e(TAG, "ScreenManager is null, cannot pop to wridzCarplayRoot")
         return@post
       }
-      Log.d(TAG, "Current screen before pop: $currentCarScreen")
-    
-      screenManager?.popToRoot()
-      Log.d(TAG, "Popped to wridzCarplayRoot")
+
+      currentCarScreen = screenManager?.top as? CarScreen
+
+      if (currentCarScreen == null) {
+        Log.d(TAG, "Current screen is null")
+        return@post
+      }
+
+      if (currentCarScreen!!.marker == "wridzCarplayRoot") {
+        Log.d(TAG, "Current screen is already at the root")
+        return@post
+      }
 
       // Check if currentCarScreen is not null before removing
-      currentCarScreen?.let {
-        Log.d(TAG, "Removing current screen: $it")
-        removeScreen(it)
-    } ?: Log.d(TAG, "No current screen to remove")
-      Log.d(TAG, "Current screen after removal: $currentCarScreen")
-      currentCarScreen = screenManager?.top as? CarScreen
-      currentCarScreen?.invalidate()
-      Log.d(TAG, "Current screen after invalidation: $currentCarScreen")
+      val screensToPop = mutableListOf<CarScreen>()
+      while (currentCarScreen != null && currentCarScreen!!.marker != "wridzCarplayRoot") {
+        screenManager!!.top?.let { screensToPop.add(it as CarScreen) }
+        screenManager!!.pop()
+        currentCarScreen = screenManager?.top as? CarScreen
+      }
+
+      screenManager?.popTo("wridzCarplayRoot")
+
+      // Remove and invalidate the screens
+      screensToPop.forEach { screen ->
+        removeScreen(screen)
+        screen.invalidate()
+
+        // Remove from hashmaps
+        carScreens.remove(screen.marker)
+        carTemplates.remove(screen.marker)
+        carScreenContexts.remove(screen)
+        Log.d(TAG, "Removed screen: ${screen.marker}")
+      }
 
       currentCarScreen = screenManager?.top as? CarScreen
-      Log.d(TAG, "Updated current screen after invalidation: $currentCarScreen")
     }
   }
 
@@ -200,17 +247,74 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
 
   @ReactMethod
   fun popToTemplate(templateId: String, animated: Boolean?) {
-    handler.post { screenManager?.popTo(templateId) }
+    handler.post { 
+      if (screenManager == null) {
+        Log.e(TAG, "ScreenManager is null, cannot pop to wridzCarplayRoot")
+        return@post
+      }
+
+      currentCarScreen = screenManager?.top as? CarScreen
+
+      if (currentCarScreen == null) {
+        Log.d(TAG, "Current screen is null")
+        return@post
+      }
+
+      if (currentCarScreen!!.marker == templateId) {
+        Log.d(TAG, "Current screen is already at the root")
+        return@post
+      }
+      
+      val screensToPop = mutableListOf<CarScreen>()
+      while (currentCarScreen != null && currentCarScreen!!.marker != templateId) {
+        screenManager!!.top?.let { screensToPop.add(it as CarScreen) }
+        screenManager!!.pop()
+        currentCarScreen = screenManager?.top as? CarScreen
+      }
+
+      screenManager?.popTo(templateId)
+
+      // Remove and invalidate the screens
+      screensToPop.forEach { screen ->
+        removeScreen(screen)
+        screen.invalidate()
+
+        // Remove from hashmaps
+        carScreens.remove(screen.marker)
+        carTemplates.remove(screen.marker)
+        carScreenContexts.remove(screen)
+        Log.d(TAG, "Removed screen: ${screen.marker}")
+      }
+
+      currentCarScreen = screenManager?.top as? CarScreen
+    }
   }
 
   @ReactMethod
   fun popTemplate(animated: Boolean?) {
     handler.post {
+      if (screenManager == null) {
+        Log.e(TAG, "ScreenManager is null, cannot pop to wridzCarplayRoot")
+        return@post
+      }
+
+      currentCarScreen = screenManager?.top as? CarScreen
+
+      if (currentCarScreen == null) {
+        Log.d(TAG, "Current screen is null")
+        return@post
+      }
+      
       screenManager!!.pop()
       removeScreen(currentCarScreen)
-      currentCarScreen = screenManager!!.top as CarScreen
       currentCarScreen?.invalidate()
 
+      // Remove from hashmaps
+      carScreens.remove(currentCarScreen?.marker)
+      carTemplates.remove(currentCarScreen?.marker)
+      carScreenContexts.remove(currentCarScreen)
+
+      currentCarScreen = screenManager?.top as? CarScreen
       Log.d(TAG, "Current screen after pop: $currentCarScreen")
     }
   }
@@ -240,10 +344,24 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
   fun alert(props: ReadableMap) {
     handler.post {
       val id = props.getInt("id")
+      val templateId = props.getString("templateId")
       val title = parser.parseCarText(props.getString("title")!!, props)
       val duration = props.getInt("duration").toLong()
       Log.d("alert Emitter ID", eventEmitter.toString())
 
+      var internalEventEmitter = eventEmitter
+      var internalParser = parser
+      val screen = getScreen(templateId!!)
+
+      if (screen != null) {
+        val carScreenContext = carScreenContexts[screen]
+        if (carScreenContext != null) {
+          internalEventEmitter = carScreenContext.eventEmitter
+          internalParser = Parser(carContext, carScreenContext)
+        }
+      }
+
+      Log.d("alert Emitter ID", internalEventEmitter.toString())
       val alert =
               Alert.Builder(id, title, duration)
                       .apply {
@@ -258,22 +376,21 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
                                               else -> "unknown"
                                             }
                                     Log.d("onCancel Emitter ID", eventEmitter.toString())
-                                    eventEmitter?.alertActionPressed("cancel", reasonString)
+                                    internalEventEmitter?.alertActionPressed("cancel", templateId, reasonString)
                                   }
                                   override fun onDismiss() {
                                     Log.d("onDismiss Emitter ID", eventEmitter.toString())
-                                    eventEmitter?.alertActionPressed("dismiss")
+                                    internalEventEmitter?.alertActionPressed("dismiss", templateId)
                                   }
                                 }
                         )
                         props.getString("subtitle")?.let {
-                          setSubtitle(parser.parseCarText(it, props))
+                          setSubtitle(internalParser.parseCarText(it, props))
                         }
-                        props.getMap("icon")?.let { setIcon(parser.parseCarIcon(it)) }
+                        props.getMap("icon")?.let { setIcon(internalParser.parseCarIcon(it)) }
                         props.getArray("actions")?.let {
                           for (i in 0 until it.size()) {
-
-                            addAction(parser.parseAction(it.getMap(i)))
+                            addAction(internalParser.parseAction(it.getMap(i)))
                           }
                         }
                       }
@@ -295,11 +412,16 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
       if (screen != null) {
         val carScreenContext = carScreenContexts[screen]
         if (carScreenContext != null) {
-          val template = parseTemplate(config, carScreenContext)
-          screen.invalidate()
-          screen.setTemplate(template, templateId, config)
+          val newContext = createCarScreenContext(screen)
+          carScreenContexts[screen] = newContext
           carScreens[templateId] = screen
+          // val template = parseTemplate(config, carScreenContext)
+          // screen.invalidate()
+          // screen.setTemplate(template, templateId, config)
+          // carScreens[templateId] = screen
         }
+      } else {
+        Log.d(TAG, "Screen with templateId $templateId is null")
       }
     }
   }
@@ -323,6 +445,8 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
       if (screen === screenManager!!.top) {
         Log.d(TAG, "Invalidated screen $templateId")
         screen.invalidate()
+      } else {
+        Log.d(TAG, "Screen with templateId $templateId is null")
       }
     }
   }
@@ -345,9 +469,29 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
 
   @ReactMethod
   fun getCurrentTemplateId(promise: Promise) {
-    promise.resolve(Arguments.createMap().apply {
-      putString("templateId", currentCarScreen?.templateId ?: "unknown")
-    })
+    handler.post {
+      if (screenManager == null) {
+        Log.d(TAG, "ScreenManager is null")
+        promise.resolve(Arguments.createMap().apply {
+          putString("templateId", "unknown")
+        })
+        return@post
+      }
+
+      currentCarScreen = screenManager?.top as? CarScreen
+
+      if (currentCarScreen == null) {
+        Log.d(TAG, "Current screen is null")
+        promise.resolve(Arguments.createMap().apply {
+          putString("templateId", "unknown")
+        })
+        return@post
+      }
+
+      promise.resolve(Arguments.createMap().apply {
+        putString("templateId", currentCarScreen?.marker ?: "unknown")
+      })
+    }
   }
 
   // Others
@@ -401,7 +545,7 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
     if (config != null) {
       val screen = CarScreen(carContext)
       screen.marker = templateId
-
+      
       // context
       carScreenContexts.remove(screen)
       val carScreenContext = createCarScreenContext(screen)
@@ -417,7 +561,7 @@ class CarPlayModule internal constructor(private val reactContext: ReactApplicat
   }
 
   private fun getScreen(name: String): CarScreen? {
-    return carScreens[name] ?: createScreen(name)
+    return carScreens[name]
   }
 
   private fun logCarScreens() {

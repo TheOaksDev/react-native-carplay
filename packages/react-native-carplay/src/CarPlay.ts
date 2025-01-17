@@ -234,11 +234,11 @@ export class CarPlayInterface {
 
   /**
    * Pops templates until the specified template is at the top of the navigation stack.
-   * @param targetTemplate The template that you want at the top of the stack. The template must be on the navigation stack before calling this method.
+   * @param targetTemplateId The template that you want at the top of the stack. The template must be on the navigation stack before calling this method.
    * @param animated A Boolean value that indicates whether the system animates the display of transitioning templates.
    */
-  public popToTemplate(targetTemplate: PushableTemplates, animated = true) {
-    return this.bridge.popToTemplate(targetTemplate.id, animated);
+  public popToTemplate(targetTemplateId: string, animated = true) {
+    return this.bridge.popToTemplate(targetTemplateId, animated);
   }
 
   /**

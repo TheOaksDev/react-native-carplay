@@ -145,7 +145,7 @@ export class Template<P> {
   }
 
   updateTemplate = (config: P) => {
-    console.log('LETSGO!', config, this.type);
+    console.log('LETSGO!', config, this.type, this.id);
     CarPlay.bridge.updateTemplate(this.id, this.parseConfig({ type: this.type, ...config }));
   };
 

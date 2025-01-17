@@ -39,7 +39,8 @@ export class AndroidNavigationBaseTemplate<
   constructor(public config: T) {
     super(config);
 
-    if (config.component) {
+    // Android component registration occurs in the index.js file
+    if (config.component && Platform.OS !== 'android') {
       AppRegistry.registerComponent(this.id, () => config.component);
     }
 

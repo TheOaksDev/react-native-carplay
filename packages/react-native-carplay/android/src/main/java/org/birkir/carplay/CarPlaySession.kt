@@ -31,7 +31,6 @@ class CarPlaySession(private val reactInstanceManager: ReactInstanceManager) :
     val lifecycle = lifecycle
     lifecycle.addObserver(this)
     screen = CarScreen(carContext)
-    screen.marker = screen.templateId
 
     // Handle reload events
     carContext.registerReceiver(
