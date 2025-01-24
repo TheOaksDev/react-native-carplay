@@ -98,6 +98,7 @@ class CarPlaySession(private val reactInstanceManager: ReactInstanceManager) :
     Log.i(TAG, "onDestroy")
     // Unregister any receivers or listeners
     emitDidDisconnectEvent()
+    CarPlayModule.cleanup();
   }
 
   override fun onNewIntent(intent: Intent) {

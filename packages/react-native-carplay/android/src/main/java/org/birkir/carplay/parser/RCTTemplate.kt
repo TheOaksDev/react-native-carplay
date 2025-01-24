@@ -346,15 +346,15 @@ abstract class RCTTemplate(
       item.getMap("image")?.let { setImage(parseCarIcon(it)) }
       if (item.hasKey("browsable") && item.getBoolean("browsable")) {
         setBrowsable(true)
-        setOnClickListener {
-          eventEmitter.didSelectListItem(
-            id,
-            index
-          )
-        }
       }
       item.getMap("action")?.let {
         addAction(parseRowAction(it, id, index))
+      }
+      setOnClickListener {
+        eventEmitter.didSelectListItem(
+          id,
+          index
+        )
       }
     }.build()
   }

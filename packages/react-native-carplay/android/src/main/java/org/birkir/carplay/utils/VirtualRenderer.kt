@@ -136,6 +136,11 @@ class VirtualRenderer(private val context: CarContext, private val moduleName: S
     }
   }
 
+  fun unmountComponent() {
+    rootView?.unmountReactApplication()
+    rootView = null // Reset the root tag after unmounting
+  }
+
   companion object {
     const val TAG = "VirtualRenderer"
   }

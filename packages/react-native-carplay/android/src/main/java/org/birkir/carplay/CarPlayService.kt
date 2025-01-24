@@ -18,6 +18,12 @@ class CarPlayService : CarAppService() {
             (application as ReactApplication).reactNativeHost.reactInstanceManager
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d(TAG, "CarPlayService destroyed")
+        // Perform cleanup related to CarPlay disconnection
+    }
+
     override fun createHostValidator(): HostValidator {
         return HostValidator.ALLOW_ALL_HOSTS_VALIDATOR
     }
