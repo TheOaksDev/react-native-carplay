@@ -25,6 +25,7 @@ class CarScreen(carContext: CarContext) : Screen(carContext) {
   init {
     lifecycle.addObserver(object : LifecycleEventObserver {
       override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+        Log.d(TAG, "onStateChanged: got $event")
         if (event == Lifecycle.Event.ON_DESTROY && virtualRenderer != null) {
           Log.d(TAG, "onStateChanged: got $event, removing virtual renderer")
           virtualRenderer?.unmountComponent() // Unmount the component

@@ -30,7 +30,7 @@ class CarPlayService : CarAppService() {
 
     override fun onCreateSession(sessionInfo: SessionInfo): Session {
         Log.d(TAG, "onCreateSession: sessionId = ${sessionInfo.sessionId}, display = ${sessionInfo.displayType}")
-        //startCarPlayForegroundService()
+        startCarPlayForegroundService()
         return CarPlaySession(reactInstanceManager)
     }
 

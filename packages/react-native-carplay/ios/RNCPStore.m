@@ -5,6 +5,7 @@
     NSMutableDictionary* _navigationSessionsStore;
     NSMutableDictionary* _tripsStore;
     Boolean _connected;
+    NSString* _currentTemplateId;
 }
 
 @synthesize window;
@@ -16,6 +17,7 @@
         _navigationSessionsStore = [[NSMutableDictionary alloc] init];
         _tripsStore = [[NSMutableDictionary alloc] init];
         _connected = false;
+        _currentTemplateId = nil;
     }
 
     return self;
@@ -34,8 +36,16 @@
     _connected = isConnected;
 }
 
+- (void) setCurrentTemplateId:(NSString*)templateId {
+    _currentTemplateId = templateId;
+}
+
 - (Boolean) isConnected {
     return _connected;
+}
+
+- (NSString*) getCurrentTemplateId {
+    return _currentTemplateId;
 }
 
 - (CPTemplate*) findTemplateById:(NSString*)templateId {

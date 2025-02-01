@@ -18,5 +18,7 @@
 - (NSString*) setNavigationSession:(NSString*)navigationSessionId navigationSession:(CPNavigationSession*)navigationSession;
 - (Boolean) isConnected;
 - (void) setConnected:(Boolean) isConnected;
+- (void) setCurrentTemplateId:(NSString*)templateId;
+- (NSString*) getCurrentTemplateId;
 
 @end

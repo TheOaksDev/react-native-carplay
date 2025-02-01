@@ -30,9 +30,11 @@ export class AndroidNavigationBaseTemplate<
       mapButtonPressed: 'onMapButtonPressed',
       buttonPressed: 'onButtonPressed',
       alertActionPressed: 'onAlertActionPressed',
-      scroll: 'onScroll',
-      scale: 'onScale',
-      fling: 'onFling',
+      ...(Platform.OS === 'android' && {
+        scroll: 'onScroll',
+        scale: 'onScale',
+        fling: 'onFling',
+      }),
     };
   }
 

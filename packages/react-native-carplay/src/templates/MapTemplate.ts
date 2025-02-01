@@ -94,6 +94,9 @@ export interface MapTemplateConfig extends TemplateConfig {
   onSelectedPreviewForTrip?(e: { tripId: string; routeIndex: number }): void;
   onDidCancelNavigation?(): void;
   onStartedTrip?(e: { tripId: string; routeIndex: number }): void;
+  onScroll?(e: { distanceX: number; distanceY: number }): void;
+  onScale?(e: { focusX: number; focusY: number; scaleFactor: number }): void;
+  onFling?(e: { velocityX: number; velocityY: number }): void;
 }
 
 /**
@@ -117,15 +120,20 @@ export class MapTemplate extends Template<MapTemplateConfig> {
       alertActionPressed: 'onAlertActionPressed',
       buttonPressed: 'onButtonPressed',
       mapButtonPressed: 'onMapButtonPressed',
-      paneButtonPressed: 'onPaneButtonPressed',
-      didSelectListItem: 'onDidSelectListItem',
-      didSelectListItemAction: 'onDidSelectListItemAction',
       panWithDirection: 'onPanWithDirection',
       panBeganWithDirection: 'onPanBeganWithDirection',
       panEndedWithDirection: 'onPanEndedWithDirection',
       selectedPreviewForTrip: 'onSelectedPreviewForTrip',
       didCancelNavigation: 'onDidCancelNavigation',
       startedTrip: 'onStartedTrip',
+      ...(Platform.OS === 'android' && {
+        didSelectListItem: 'onDidSelectListItem',
+        didSelectListItemAction: 'onDidSelectListItemAction',
+        paneButtonPressed: 'onPaneButtonPressed',
+        scroll: 'onScroll',
+        scale: 'onScale',
+        fling: 'onFling',
+      }),
     };
   }
 

@@ -350,11 +350,13 @@ abstract class RCTTemplate(
       item.getMap("action")?.let {
         addAction(parseRowAction(it, id, index))
       }
-      setOnClickListener {
-        eventEmitter.didSelectListItem(
-          id,
-          index
-        )
+      if (item.hasKey("pressable") && item.getBoolean("pressable")) {
+        setOnClickListener {
+          eventEmitter.didSelectListItem(
+            id,
+            index
+          )
+        }
       }
     }.build()
   }

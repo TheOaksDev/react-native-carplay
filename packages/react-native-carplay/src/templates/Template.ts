@@ -104,9 +104,6 @@ export class Template<P> {
       didDisappear: 'onDidDisappear',
       willAppear: 'onWillAppear',
       willDisappear: 'onWillDisappear',
-      scroll: 'onScroll',
-      scale: 'onScale',
-      fling: 'onFling',
       ...(this.eventMap || {}),
     };
 
@@ -120,9 +117,9 @@ export class Template<P> {
           | 'onDidAppear'
           | 'onDidDisappear'
           | 'onBarButtonPressed'
-          | 'onScroll'
-          | 'onScale'
-          | 'onFling'
+          // | 'onScroll'
+          // | 'onScale'
+          // | 'onFling'
         >;
         if (config[configEventName] && e.templateId === this.id) {
           config[configEventName]?.(e);

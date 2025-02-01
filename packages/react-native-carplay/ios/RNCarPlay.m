@@ -45,6 +45,7 @@
     RNCarPlay *cp = [RNCarPlay allocWithZone:nil];
     RNCPStore *store = [RNCPStore sharedManager];
     [store setConnected:false];
+    [store setCurrentTemplateId:nil];
     store.window.rootViewController = nil;
 
     if (cp.bridge) {
@@ -316,7 +317,7 @@ RCT_EXPORT_METHOD(createTemplate:(NSString *)templateId config:(NSDictionary*)co
         
         for (NSDictionary *_button in _buttons) {
             NSString *buttonType = [RCTConvert NSString:_button[@"type"]];
-            NSDictionary *body = @{@"templateId":templateId, @"id": _button[@"id"] };
+            NSDictionary *body = @{@"templateId":templateId, @"buttonId": _button[@"id"] };
             Class buttonClass = buttonTypeMapping[buttonType];
             if (buttonClass) {
                 CPNowPlayingButton *button;
@@ -361,7 +362,7 @@ RCT_EXPORT_METHOD(createTemplate:(NSString *)templateId config:(NSDictionary*)co
         for (NSDictionary *_action in _actions) {
             CPAlertAction *action = [[CPAlertAction alloc] initWithTitle:[RCTConvert NSString:_action[@"title"]] style:[RCTConvert CPAlertActionStyle:_action[@"style"]] handler:^(CPAlertAction *a) {
                 if (self->hasListeners) {
-                    [self sendEventWithName:@"actionButtonPressed" body:@{@"templateId":templateId, @"id": _action[@"id"] }];
+                    [self sendEventWithName:@"actionButtonPressed" body:@{@"templateId":templateId, @"buttonId": _action[@"id"] }];
                 }
             }];
             [actions addObject:action];
@@ -374,7 +375,7 @@ RCT_EXPORT_METHOD(createTemplate:(NSString *)templateId config:(NSDictionary*)co
         for (NSDictionary *_action in _actions) {
             CPAlertAction *action = [[CPAlertAction alloc] initWithTitle:[RCTConvert NSString:_action[@"title"]] style:[RCTConvert CPAlertActionStyle:_action[@"style"]] handler:^(CPAlertAction *a) {
                 if (self->hasListeners) {
-                    [self sendEventWithName:@"actionButtonPressed" body:@{@"templateId":templateId, @"id": _action[@"id"] }];
+                    [self sendEventWithName:@"actionButtonPressed" body:@{@"templateId":templateId, @"buttonId": _action[@"id"] }];
                 }
             }];
             [actions addObject:action];
@@ -412,7 +413,7 @@ RCT_EXPORT_METHOD(createTemplate:(NSString *)templateId config:(NSDictionary*)co
         for (NSDictionary *_action in _actions) {
             CPTextButton *action = [[CPTextButton alloc] initWithTitle:_action[@"title"] textStyle:CPTextButtonStyleNormal handler:^(__kindof CPTextButton * _Nonnull contactButton) {
                 if (self->hasListeners) {
-                    [self sendEventWithName:@"actionButtonPressed" body:@{@"templateId":templateId, @"id": _action[@"id"] }];
+                    [self sendEventWithName:@"actionButtonPressed" body:@{@"templateId":templateId, @"buttonId": _action[@"id"] }];
                 }
             }];
             [actions addObject:action];
@@ -638,6 +639,17 @@ RCT_EXPORT_METHOD(updateTabBarTemplates:(NSString *)templateId templates:(NSDict
         [tabBarTemplate updateTemplates:[self parseTemplatesFrom:config]];
     } else {
         NSLog(@"Failed to find template %@", template);
+    }
+}
+
+RCT_EXPORT_METHOD(getCurrentTemplateId:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject) {
+    NSString *currentTemplateId = [[RNCPStore sharedManager] getCurrentTemplateId];
+    if (currentTemplateId) {
+        NSLog(@"Current templateId: %@", currentTemplateId);
+        resolve(@{ @"templateId": currentTemplateId });
+    } else {
+        NSLog(@"Current templateId not found");
+        resolve(@{ @"templateId": @"unknown" });
     }
 }
 
@@ -921,7 +933,7 @@ RCT_EXPORT_METHOD(updateMapTemplateMapButtons:(NSString*) templateId mapButtons:
         for (NSDictionary *mapButton in mapButtons) {
             NSString *_id = [mapButton objectForKey:@"id"];
             [result addObject:[RCTConvert CPMapButton:mapButton withHandler:^(CPMapButton * _Nonnull mapButton) {
-                [self sendTemplateEventWithName:mapTemplate name:@"mapButtonPressed" json:@{ @"id": _id }];
+                [self sendTemplateEventWithName:mapTemplate name:@"mapButtonPressed" json:@{ @"buttonId": _id, @"templateId": templateId }];
             }]];
         }
         [mapTemplate setMapButtons:result];
@@ -963,7 +975,7 @@ RCT_EXPORT_METHOD(updateMapTemplateMapButtons:(NSString*) templateId mapButtons:
         for (NSDictionary *mapButton in mapButtons) {
             NSString *_id = [mapButton objectForKey:@"id"];
             [result addObject:[RCTConvert CPMapButton:mapButton withHandler:^(CPMapButton * _Nonnull mapButton) {
-                [self sendTemplateEventWithName:mapTemplate name:@"mapButtonPressed" json:@{ @"id": _id }];
+                [self sendTemplateEventWithName:mapTemplate name:@"mapButtonPressed" json:@{ @"buttonId": _id, @"templateId": templateId }];
             }]];
         }
         [mapTemplate setMapButtons:result];
@@ -1005,7 +1017,7 @@ RCT_EXPORT_METHOD(updateMapTemplateMapButtons:(NSString*) templateId mapButtons:
         if ([type isEqualToString:@"call"]) {
             _button = [[CPContactCallButton alloc] initWithHandler:^(__kindof CPButton * _Nonnull contactButton) {
                 if (self->hasListeners) {
-                    [self sendEventWithName:@"buttonPressed" body:@{@"id": _id, @"templateId":templateId}];
+                    [self sendEventWithName:@"buttonPressed" body:@{@"buttonId": _id, @"templateId":templateId}];
                 }
             }];
         } else if ([type isEqualToString:@"message"]) {
@@ -1013,7 +1025,7 @@ RCT_EXPORT_METHOD(updateMapTemplateMapButtons:(NSString*) templateId mapButtons:
         } else if ([type isEqualToString:@"directions"]) {
             _button = [[CPContactDirectionsButton alloc] initWithHandler:^(__kindof CPButton * _Nonnull contactButton) {
                 if (self->hasListeners) {
-                    [self sendEventWithName:@"buttonPressed" body:@{@"id": _id, @"templateId":templateId}];
+                    [self sendEventWithName:@"buttonPressed" body:@{@"buttonId": _id, @"templateId":templateId}];
                 }
             }];
         }
@@ -1042,7 +1054,7 @@ RCT_EXPORT_METHOD(updateMapTemplateMapButtons:(NSString*) templateId mapButtons:
         }
         CPBarButton *_barButton = [[CPBarButton alloc] initWithType:_type handler:^(CPBarButton * _Nonnull barButton) {
             if (self->hasListeners) {
-                [self sendEventWithName:@"barButtonPressed" body:@{@"id": _id, @"templateId":templateId}];
+                [self sendEventWithName:@"barButtonPressed" body:@{@"buttonId": _id, @"templateId":templateId}];
             }
         }];
         BOOL _disabled = [barButton objectForKey:@"disabled"];
@@ -1179,7 +1191,7 @@ RCT_EXPORT_METHOD(updateMapTemplateMapButtons:(NSString*) templateId mapButtons:
     for (NSDictionary *action in actions) {
         CPTextButton *_action = [[CPTextButton alloc] initWithTitle:action[@"title"] textStyle:CPTextButtonStyleNormal handler:^(__kindof CPTextButton * _Nonnull contactButton) {
             if (self->hasListeners) {
-                [self sendEventWithName:@"actionButtonPressed" body:@{@"templateId":templateId, @"id": action[@"id"] }];
+                [self sendEventWithName:@"actionButtonPressed" body:@{@"templateId":templateId, @"buttonId": action[@"id"] }];
             }
         }];
         [_actions addObject:_action];
@@ -1197,7 +1209,7 @@ RCT_EXPORT_METHOD(updateMapTemplateMapButtons:(NSString*) templateId mapButtons:
         UIImage *_image = [RCTConvert UIImage:[button objectForKey:@"image"]];
         CPGridButton *_button = [[CPGridButton alloc] initWithTitleVariants:_titleVariants image:_image handler:^(CPGridButton * _Nonnull barButton) {
             if (self->hasListeners) {
-                [self sendEventWithName:@"gridButtonPressed" body:@{@"id": _id, @"templateId":templateId, @"index": @(index) }];
+                [self sendEventWithName:@"gridButtonPressed" body:@{@"buttonId": _id, @"templateId":templateId, @"index": @(index) }];
             }
         }];
         BOOL _disabled = [button objectForKey:@"disabled"];
@@ -1615,6 +1627,7 @@ RCT_EXPORT_METHOD(updateMapTemplateMapButtons:(NSString*) templateId mapButtons:
 # pragma InterfaceController
 
 - (void)templateDidAppear:(CPTemplate *)aTemplate animated:(BOOL)animated {
+    [[RNCPStore sharedManager] setCurrentTemplateId:[[aTemplate userInfo] objectForKey:@"templateId"]];
     [self sendTemplateEventWithName:aTemplate name:@"didAppear" json:@{ @"animated": @(animated) }];
 }
 

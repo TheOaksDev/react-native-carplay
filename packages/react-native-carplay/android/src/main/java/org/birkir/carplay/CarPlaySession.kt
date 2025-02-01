@@ -31,6 +31,7 @@ class CarPlaySession(private val reactInstanceManager: ReactInstanceManager) :
     val lifecycle = lifecycle
     lifecycle.addObserver(this)
     screen = CarScreen(carContext)
+    screen.marker = "wridzCarplayRoot"
 
     // Handle reload events
     carContext.registerReceiver(
@@ -71,6 +72,7 @@ class CarPlaySession(private val reactInstanceManager: ReactInstanceManager) :
 
   private fun invokeStartTask(reactContext: ReactContext) {
     try {
+      Log.d(TAG, "Invoking start task")
       val catalystInstance = reactContext.catalystInstance
       val jsAppModuleName = "AndroidAuto"
       val appParams = WritableNativeMap()
@@ -96,9 +98,13 @@ class CarPlaySession(private val reactInstanceManager: ReactInstanceManager) :
 
   override fun onDestroy(owner: LifecycleOwner) {
     Log.i(TAG, "onDestroy")
+
+    // Stop the JS application
+    //stopJsApplication()
+    
     // Unregister any receivers or listeners
     emitDidDisconnectEvent()
-    CarPlayModule.cleanup();
+    CarPlayModule.cleanup()
   }
 
   override fun onNewIntent(intent: Intent) {
@@ -115,9 +121,26 @@ class CarPlaySession(private val reactInstanceManager: ReactInstanceManager) :
     val params = Arguments.createMap()
     val reactContext = reactInstanceManager.currentReactContext
     if (reactContext != null) {
-      reactContext!!
-              .getJSModule(RCTDeviceEventEmitter::class.java)
-              .emit("didDisconnect", params)
+      reactContext!!.getJSModule(RCTDeviceEventEmitter::class.java).emit("didDisconnect", params)
+    }
+  }
+
+  private fun stopJsApplication() {
+    val reactContext = reactInstanceManager.currentReactContext
+    if (reactContext != null) {
+      try {
+        val catalystInstance = reactContext.catalystInstance
+        val jsAppModuleName = "AndroidAuto"
+
+        // Use AppRegistry to stop the application
+        catalystInstance
+                .getJSModule(AppRegistry::class.java)
+                .unmountApplicationComponentAtRootTag(1)
+
+        Log.d(TAG, "Stopped JS application for module: $jsAppModuleName")
+      } catch (e: Exception) {
+        Log.e(TAG, "Error stopping JS application: ${e.message}")
+      }
     }
   }
 

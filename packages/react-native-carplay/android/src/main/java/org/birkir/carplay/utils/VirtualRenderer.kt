@@ -34,6 +34,10 @@ class VirtualRenderer(private val context: CarContext, private val moduleName: S
         }
       }
 
+      override fun onSurfaceDestroyed(surfaceContainer: SurfaceContainer) {
+        Log.d(TAG, "onSurfaceDestroyed")
+      }
+
       override fun onScroll(distanceX: Float, distanceY: Float) {
         Log.d(TAG, "onScroll: distanceX: $distanceX, distanceY: $distanceY")
         val instanceManager =
