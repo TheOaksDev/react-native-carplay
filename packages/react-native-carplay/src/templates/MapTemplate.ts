@@ -97,6 +97,8 @@ export interface MapTemplateConfig extends TemplateConfig {
   onScroll?(e: { distanceX: number; distanceY: number }): void;
   onScale?(e: { focusX: number; focusY: number; scaleFactor: number }): void;
   onFling?(e: { velocityX: number; velocityY: number }): void;
+  onVisibleAreaChanged?(e: { top: number; left: number; right: number; bottom: number }): void;
+  onStableAreaChanged?(e: { top: number; left: number; right: number; bottom: number }): void;
 }
 
 /**
@@ -133,6 +135,8 @@ export class MapTemplate extends Template<MapTemplateConfig> {
         scroll: 'onScroll',
         scale: 'onScale',
         fling: 'onFling',
+        visibleAreaChanged: 'onVisibleAreaChanged',
+        stableAreaChanged: 'onStableAreaChanged',
       }),
     };
   }

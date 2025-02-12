@@ -2,6 +2,7 @@ package org.birkir.carplay.utils
 
 import android.app.Presentation
 import android.content.Context
+import android.graphics.Rect
 import android.hardware.display.DisplayManager
 import android.os.Bundle
 import android.util.Log
@@ -22,10 +23,12 @@ import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEm
 class VirtualRenderer(private val context: CarContext, private val moduleName: String) {
 
   private var rootView: ReactRootView? = null
+  private var surfaceContainer: SurfaceContainer? = null
 
   init {
     context.getCarService(AppManager::class.java).setSurfaceCallback(object : SurfaceCallback {
       override fun onSurfaceAvailable(surfaceContainer: SurfaceContainer) {
+        this@VirtualRenderer.surfaceContainer = surfaceContainer
         val surface = surfaceContainer.surface
         if (surface == null) {
           Log.w(TAG, "surface is null")
@@ -36,6 +39,7 @@ class VirtualRenderer(private val context: CarContext, private val moduleName: S
 
       override fun onSurfaceDestroyed(surfaceContainer: SurfaceContainer) {
         Log.d(TAG, "onSurfaceDestroyed")
+        this@VirtualRenderer.surfaceContainer = null
       }
 
       override fun onScroll(distanceX: Float, distanceY: Float) {
@@ -96,6 +100,54 @@ class VirtualRenderer(private val context: CarContext, private val moduleName: S
                   .emit("scale", params)
         } else {
           Log.w(TAG, "reactContext is null")
+        }
+      }
+
+      override fun onStableAreaChanged(stableArea: Rect) {
+        Log.d(TAG, "onStableAreaChanged: stableArea: $stableArea")
+        val instanceManager =
+                (context.applicationContext as ReactApplication).reactNativeHost.reactInstanceManager
+        val params = Arguments.createMap()
+        val fullWidth = this@VirtualRenderer.surfaceContainer?.width ?: 0
+        val fullHeight = this@VirtualRenderer.surfaceContainer?.height ?: 0
+        params.putString("top", stableArea.top.toString())
+        params.putString("left", stableArea.left.toString())
+        params.putString("right", stableArea.right.toString())
+        params.putString("bottom", stableArea.bottom.toString())
+        params.putString("width", fullWidth.toString())
+        params.putString("height", fullHeight.toString())
+        Log.d(TAG, "moduleName: $moduleName")
+        params.putString("templateId", moduleName)
+        val reactContext = instanceManager.currentReactContext
+        if (reactContext != null) {
+          Log.d(TAG, "reactContext is not null")
+          reactContext!!
+                  .getJSModule(RCTDeviceEventEmitter::class.java)
+                  .emit("stableAreaChanged", params)
+        }
+      }
+
+      override fun onVisibleAreaChanged(visibleArea: Rect) {
+        Log.d(TAG, "onVisibleAreaChanged: visibleArea: $visibleArea")
+        val instanceManager =
+                (context.applicationContext as ReactApplication).reactNativeHost.reactInstanceManager
+        val params = Arguments.createMap()
+        val fullWidth = this@VirtualRenderer.surfaceContainer?.width ?: 0
+        val fullHeight = this@VirtualRenderer.surfaceContainer?.height ?: 0
+        params.putString("top", visibleArea.top.toString())
+        params.putString("left", visibleArea.left.toString())
+        params.putString("right", visibleArea.right.toString())
+        params.putString("bottom", visibleArea.bottom.toString())
+        params.putString("width", fullWidth.toString())
+        params.putString("height", fullHeight.toString())
+        Log.d(TAG, "moduleName: $moduleName")
+        params.putString("templateId", moduleName)
+        val reactContext = instanceManager.currentReactContext
+        if (reactContext != null) {
+          Log.d(TAG, "reactContext is not null")
+          reactContext!!
+                  .getJSModule(RCTDeviceEventEmitter::class.java)
+                  .emit("visibleAreaChanged", params)
         }
       }
 

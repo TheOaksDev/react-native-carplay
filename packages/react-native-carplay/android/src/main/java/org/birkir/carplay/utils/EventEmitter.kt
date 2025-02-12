@@ -1,6 +1,7 @@
 package org.birkir.carplay.utils
 
 import android.util.Log
+import android.graphics.Rect
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.WritableMap
@@ -27,6 +28,8 @@ class EventEmitter(
     const val Scroll = "scroll"
     const val Scale = "scale"
     const val Fling = "fling"
+    const val VisibleAreaChanged = "visibleAreaChanged"
+    const val StableAreaChanged = "stableAreaChanged"
 
     // grid
     const val GridButtonPressed = "gridButtonPressed"
@@ -194,6 +197,30 @@ class EventEmitter(
       putString("velocityY", velocityY.toString())
     })
   }
+
+  fun onVisibleAreaChanged(visibleArea: Rect, width: Int, height: Int) {
+    emit(VisibleAreaChanged, Arguments.createMap().apply {
+      Log.d("EventEmitter", "Emitting visible area changed event with visibleArea: $visibleArea")
+      putString("top", visibleArea.top.toString())
+      putString("left", visibleArea.left.toString())
+      putString("right", visibleArea.right.toString())
+      putString("bottom", visibleArea.bottom.toString())
+      putString("width", width.toString())
+      putString("height", height.toString())
+    })
+  }
+
+  fun onStableAreaChanged(stableArea: Rect, width: Int, height: Int) {
+    emit(StableAreaChanged, Arguments.createMap().apply {
+      putString("top", stableArea.top.toString())
+      putString("left", stableArea.left.toString())
+      putString("right", stableArea.right.toString())
+      putString("bottom", stableArea.bottom.toString())
+      putString("width", width.toString())
+      putString("height", height.toString())
+    })
+  }
+
 
   fun didShowPanningInterface() {
     Log.d("EventEmitter", "Did show panning interface")
